@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="stylesheet" href="/css/font.css">
+    <link rel="stylesheet" href="/css/xadmin.css">
+    <script type="text/javascript" src="https://cdn.bootcss.com/jquery/3.2.1/jquery.min.js"></script>
+    <script src="/lib/layui/layui.js" charset="utf-8"></script>
+    <script type="text/javascript" src="/js/xadmin.js"></script>
+    <meta charset="UTF-8">
+    <title>用户信息</title>
+</head>
+<body class="list-bg">
+
+<form class="x-so" action="/super/list" method="get" id="myform">
+    </br></br></br>
+    <select id="condition" name="condition" style="width: 120px;height: 37px">
+        <option value="编号">编号</option>
+        <option value="用户名">用户名</option>
+        <option value="职位">职位</option>
+        <option value="权限等级">权限等级</option>
+    </select>
+
+    <input class="layui-input" id="conValue" name="conValue" type="text" th:value="${convalue}" placeholder="请输入查询条件">
+    <button type="button" class="layui-btn layui-btn-normal" onclick="search()">查询</button>
+    <button class="layui-btn layui-btn-warm" type="button" onclick="insert()">添加</button>
+    <a class="layui-btn layui-btn-warm" type="button" onclick="downloadFile()">导出Excel</a>
+</form>
+
+<table class="layui-table">
+    <thead>
+    <th>编号</th>
+    <th>用户名</th>
+    <th>邮箱</th>
+    <th>职位</th>
+    <th>权限等级</th>
+    <th>操作</th>
+    <th>操作</th>
+    </thead>
+    <tbody>
+    <tr th:each="i:${info.list}">
+        <td th:text="${i.userId}"></td>
+        <td th:text="${i.userName}"></td>
+        <td th:text="${i.userEmail}"></td>
+        <td th:text="${i.userPosition}"></td>
+        <td th:text="${i.userLevel}"></td>
+        <td>
+            <button class="layui-btn" type="button" onclick="update(this)">修改</button>
+        </td>
+        <td>
+            <button class="layui-btn layui-btn-danger" type="button" onclick="del(this)">删除</button>
+        </td>
+    </tr>
+    </tbody>
+
+</table>
+<div id="pageInfo">
+    <a class="layui-btn layui-btn-normal" th:href="@{/super/list(page=${info.pre})}">上一页</a>
+    <a class="layui-btn layui-btn-normal" th:href="@{/super/list(page=${info.next})}">下一页</a>
+    一共有<span th:text="${info.total}"></span>条数据
+    一共有<span th:text="${info.totalPage}"></span>个页面
+    当前第<span th:text="${info.cur}"></span>页
+
+</div>
+</body>
+</html>
+<script>
+    function downloadFile() {
+
+        window.location.href = "/super/userExcel";
+    }
+
+    //查询验证
+    function search() {
+        //获取用户输入的查询条件
+        var v = $("#conValue").val();
+        //获取用户选择的查询
+        var con = $("#condition").val();
+        var form = document.getElementById("myform");
+        //判断用户选择的查询条件
+        if (con === "编号") {
+            //创建一个正则表达式对象
+            var re = /^[0-9]*$/;
+            //验证用户的查询条件是否是数字
+            if (re.test(v)) {
+                //用JS做表单提交
+                form.submit();
+            } else {
+                layer.alert("请输入数字");
+            }
+        } else if (con === "职位") {
+            if (v === "管理员" || v === "超级管理员") {
+                form.submit();
+            } else {
+                layer.alert("请输入正确的职位名称");
+            }
+        } else if (con === "权限等级") {
+            if (v === "1" || v === "2") {
+                form.submit();
+            } else {
+                layer.alert("请输入正确的权限等级");
+            }
+        } else {
+            form.submit();
+        }
+    }
+
+    //添加用户
+    function insert() {
+        x_admin_show("添加供货商信息", "/super/insertPage", 900, 600)
+    }
+
+    //打开修改页面的方法
+    function update(obj) {
+        //获取选中行userId的值
+        var id = $(obj).parent().parent().find("td").eq(0).text();
+        //打开修改弹窗
+        x_admin_show("修改", "/super/updatePage?userId=" + id, 900, 600);
+
+    }
+
+    //删除
+    function del(obj) {
+        var id = $(obj).parent().parent().find("td").eq(0).text();
+        layer.confirm("你确定要删除吗？", {icon: 3, title: "警告"}, function (index) {//function()中为用户点击按钮后进行的操作
+            $.ajax({
+                url: "/super/deleteAjax",
+                type: "get",
+                data: {"userId": id},
+                dataTypeL: "json",
+                success: function (data) {
+                    layer.alert(data.info);
+                    if (data.info == "删除成功") {
+                        //第一种刷新
+                        // parent.window.location.href=parent.window.location.href;
+                        //第二种刷新
+                        $(obj).parent().parent().remove();
+                    }
+                }
+
+            })
+        })
+    }
+
+</script>

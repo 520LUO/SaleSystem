@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>登录</title>
+    <link rel="stylesheet" href="/css/font.css">
+    <link rel="stylesheet" href="/css/xadmin.css">
+    <script type="text/javascript" src="https://cdn.bootcss.com/jquery/3.2.1/jquery.min.js"></script>
+    <script src="/lib/layui/layui.js" charset="utf-8"></script>
+    <script type="text/javascript" src="/js/xadmin.js"></script>
+</head>
+<body class="register-bg">
+<div class="layui-tab layui-tab-brief">
+    <ul class="layui-tab-title">
+        <li class="layui-this">基础信息</li>
+        <li>修改头像</li>
+        <li>密码管理</li>
+    </ul>
+    <div class="layui-tab-content">
+        <!--内容1-->
+        <div class="layui-tab-item layui-show">
+            <div class="x-body" style="position: absolute;left: 27%;right: 30%;top: 20%">
+                <div class="layui-form-item">
+                    <label for="userId" class="layui-form-label">
+                        <span class="x-red">*</span>编号
+                    </label>
+                    <div class="layui-input-inline">
+                        <input type="userId" id="userId" disabled name="newPwd" th:value="${session.user.userId}"
+                               required="" lay-verify="userId" autocomplete="off" class="layui-input">
+                    </div>
+                </div>
+                <div class="layui-form-item">
+                    <label for="userName" class="layui-form-label">
+                        <span class="x-red">*</span>用户名
+                    </label>
+                    <div class="layui-input-inline">
+                        <input type="userName" id="userName" disabled name="newPwd" th:value="${session.user.userName}"
+                               required="" lay-verify="userId" autocomplete="off" class="layui-input">
+                    </div>
+                    <button type="button" class="layui-btn" id="changeName" onclick="updateName()">修改</button>
+                </div>
+                <div class="layui-form-item">
+                    <label for="email" class="layui-form-label">
+                        <span class="x-red">*</span>邮箱
+                    </label>
+                    <div class="layui-input-inline">
+                        <input type="email" id="email" disabled name="newPwd" th:value="${session.user.userEmail}"
+                               required="" lay-verify="userId" autocomplete="off" class="layui-input">
+                    </div>
+                    <button type="button" class="layui-btn" id="changeEmail" onclick="updateEmail()">修改</button>
+                </div>
+
+            </div>
+        </div>
+        <!--内容2-->
+        <div class="layui-tab-item">
+            <div class="x-body" style="position: absolute;left: 30%;right: 30%;top: 20%">
+                <div class="x-body">
+                    <form class="layui-form">
+                        <input type="hidden" name="url" class="image" id="url">
+                        <div class="layui-form-item">
+                            <label class="layui-form-label ">照片:</label>
+                            <div class="layui-upload">
+                                <button type="button" class="layui-btn" id="test1">上传头像</button>
+                                <div class="layui-upload-list" style="margin-left: 100px">
+                                    <img th:src="${session.user.url}" class="layui-upload-img" id="demo1" width="300"
+                                         height="150">
+                                    <p id="demoText"></p>
+                                </div>
+                            </div>
+                        </div>
+                        <button type="button" class="layui-btn" onclick="saveHead()">保存</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+        <!--内容3-->
+        <div class="layui-tab-item">
+            <div class="x-body" style="position: absolute;left: 30%;right: 30%;top: 20%">
+                <form class="layui-form">
+                    <div class="layui-form-item">
+                        <label for="oldPwd" class="layui-form-label">
+                            <span class="x-red">*</span>旧密码
+                        </label>
+                        <div class="layui-input-inline">
+                            <input type="text" id="oldPwd" name="oldPwd" required="" lay-verify="oldPwd"
+                                   autocomplete="off" class="layui-input">
+                        </div>
+                        <div class="layui-form-mid layui-word-aux">
+                            <span class="x-red">*</span>
+                        </div>
+                    </div>
+
+                    <div class="layui-form-item">
+                        <label for="newPwd" class="layui-form-label">
+                            <span class="x-red">*</span>新密码
+                        </label>
+                        <div class="layui-input-inline">
+                            <input type="newPwd" id="newPwd" name="newPwd" required="" lay-verify="newPwd"
+                                   autocomplete="off" class="layui-input">
+                        </div>
+                        <div class="layui-form-mid layui-word-aux">
+                            3到12个字符
+                        </div>
+                    </div>
+                    <div class="layui-form-item">
+                        <label for="surePwd" class="layui-form-label">
+                            <span class="x-red">*</span>确认密码
+                        </label>
+                        <div class="layui-input-inline">
+                            <input type="surePwd" id="surePwd" name="surePwd" required="" lay-verify="surePwd"
+                                   autocomplete="off" class="layui-input">
+                        </div>
+                    </div>
+                    <div class="layui-form-item">
+                        <label for="userEmail" class="layui-form-label">
+                            <span class="x-red">*</span>邮箱
+                        </label>
+                        <div class="layui-input-inline">
+                            <input type="text" id="userEmail" name="userEmail" required=""
+                                   autocomplete="off" class="layui-input">
+                        </div>
+                        <button class="layui-btn layui-btn-mybtn" id="sencode" type="button" onclick="sendCode()">
+                            发送验证码
+                        </button>
+
+                    </div>
+
+                    <div class="layui-form-item">
+                        <label for="code" class="layui-form-label">
+                            <span class="x-red">*</span>验证码
+                        </label>
+                        <div class="layui-input-inline">
+                            <input type="text" id="code" name="code" required=""
+                                   autocomplete="off" class="layui-input">
+                        </div>
+                        <div class="layui-form-mid layui-word-aux">
+                            <span id="infoCode" style="color: red"></span>
+                        </div>
+                    </div>
+                    <div class="layui-form-item">
+                        <label for="surePwd" class="layui-form-label">
+                        </label>
+                        <button class="layui-btn" lay-filter="add" lay-submit="">
+                            修改
+                        </button>
+                    </div>
+                    <span id="info" style="color: red"></span>
+                </form>
+            </div>
+
+        </div>
+    </div>
+</div>
+</body>
+</html>
+
+<script>
+    var userId;
+    //文档加载事件
+    $(function () {
+        //获取session中的user对象
+        $.ajax({
+            url: "/index/getSession",
+            type: "get",
+            data: {},
+            dataType: "json",
+            success: function (data) {
+                console.log(data);
+                userId = data.user.userId;
+            }
+        })
+
+    })
+
+    layui.use(['form', 'layer'], function () {
+        $ = layui.jquery;
+        var form = layui.form
+            , layer = layui.layer;
+
+        //自定义验证规则
+        form.verify({
+            pass: [/(.+){3,12}$/, '密码必须3到12位']
+
+            , repass: function (value) {
+                if ($('#L_pass').val() != $('#L_repass').val()) {
+                    return '两次密码不一致';
+                }
+            }
+        });
+
+        //注册提交
+        form.on('submit(add)', function (dd) {
+            console.log(dd);
+            $.ajax({
+                url: "/admin/verifyCode",
+                type: "post",
+                data: dd.field,
+                dataType: "json",
+                success: function (data) {
+                    if (data.info == "验证成功") {
+                        $.ajax({//提交数据
+                            url: "/index/pwdAjax",
+                            type: "post",
+                            data: dd.field,
+                            dataType: "json",//返回的数据类型
+                            success: function (data) {//data一般是json格式，服务端传回来的值
+                                $("#info").text(data.info)
+                                //如果修改成功，重载 homepage 页面
+                                if (data.info == "修改成功") {
+                                    layer.alert(data.info);
+                                    setTimeout(function () {
+                                        parent.window.location.reload();
+                                    }, 1000);
+                                }
+                            }
+                        })
+                    } else {
+                        $("#infoCode").text(data.info);
+                    }
+                }
+            })
+
+            return false;
+        });
+    });
+
+
+    //发送验证码
+    function sendCode() {
+        //获取用户输入的邮箱
+        var email = $("#userEmail").val();
+        //对电子邮件的验证
+        var myreg = /^\w+([-+.]\w+)*@\w+([-.]\w+)*\.\w+([-.]\w+)*$/;
+        if (!myreg.test(email)) {
+            layer.alert("邮箱格式不正确");
+        } else {
+            $.ajax({
+                url: "/admin/sendEmail",
+                type: "post",
+                data: {"email": email},//传js对象
+                dataType: "json",//返回的数据类型
+                success: function (data) {
+                    $("#infoCode").text(data.info)
+                }
+            })
+        }
+    }
+
+    //打开修改用户名页面的方法
+    function updateName() {
+        //打开修改弹窗
+        x_admin_show("修改", "/index/changeName", 600, 400);
+
+    }
+
+    //打开修改邮箱页面的方法
+    function updateEmail() {
+        //打开修改弹窗
+        x_admin_show("修改", "/index/changeEmail", 600, 400);
+
+    }
+
+    //保存图片方法
+    function saveHead() {
+        //获取图片路径
+        var url = $("#url").val();
+        $.ajax({
+            url: "/index/saveHead",
+            type: "get",
+            data: {"url": url},
+            dataType: "json",
+            success: function (data) {
+                console.log(data);
+                if (data.info == "保存成功") {
+                    layer.alert("保存成功", function (index) {
+                        //1.关闭弹窗
+                        var index = parent.layer.getFrameIndex(window.name);
+                        parent.layer.close(index);
+                        //2.更改用户头像
+                        parent.$("#head").attr("src", url);
+
+                    })
+                } else {
+                    layer.alert("保存失败");
+                }
+            }
+        })
+    }
+
+    /*加载layui文件上传组件*/
+    layui.use('upload', function () {
+        var $ = layui.jquery
+            , upload = layui.upload;
+        //普通图片上传
+        var uploadInst = upload.render({
+            elem: '#test1' // 鼠标点击事件绑定按钮元素
+            , url: '/admin/uploadAjax' //服务端地址
+            , accept: 'images' //上传文件类型 可选值有：images（图片）、file（所有文件）、video（视频）、audio（音频）
+            , size: 50000  //文件大小 单位是kb
+            , before: function (obj) { // 不管上传成功 还是失败 ，都需要执行的函数
+                obj.preview(function (index, file, result) {
+                    //显示上传图片
+                    $('#demo1').attr('src', result);
+                });
+            }
+            , done: function (res) {  //访问服务端后的执行的函数
+                //如果上传失败
+                if (res.code > 0) {
+                    return layer.msg('上传失败');
+                }
+                //上传成功的提示信息
+                var demoText = $('#demoText');
+                demoText.html('<span style="color: #4cae4c;">上传成功</span>');
+
+                var fileupload = $(".image");
+                //把图片在项目中的路径存入到 属性 class=image的input框中
+                fileupload.attr("value", res.src);
+                console.log(fileupload.attr("value"));
+
+                // 上面等同于下面这个代码
+                $("#url").val(res.src);
+            }
+            , error: function () {
+                //演示失败状态，并实现重传
+                var demoText = $('#demoText');
+                demoText.html('<span style="color: #FF5722;">上传失败</span> <a class="layui-btn layui-btn-xs demo-reload">重试</a>');
+                demoText.find('.demo-reload').on('click', function () {
+                    uploadInst.upload();
+                });
+            }
+        });
+    });
+
+
+</script>

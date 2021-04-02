@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <script src="/js/jquery-3.2.1.min.js"></script>
+    <script src="/js/echarts.min.js"></script>
+    <style>
+        html, body {
+            height: 100%;
+        }
+    </style>
+</head>
+<body>
+<div style="position: absolute;left: 40%;">
+    <select id="convalue" name="convalue" onmouseout="changeVal()" style="width: 120px;height: 25px"
+            class="layui-input">
+        <option value="全部记录">全部商品</option>
+        <option value="销售日期">销售日期</option>
+    </select>
+    <input id="saleTime" name="saleTime" type="date" class="layui-input" hidden style="width: 135px;height: 25px">
+
+    <select id="condition" style="width: 120px;height: 25px" class="layui-input">
+        <option value="数量">数量</option>
+        <option value="总金额">总金额</option>
+    </select>
+
+    <button type="button" onclick="histogram()" class="layui-btn">查询</button>
+</div>
+
+<!--创建一个容器-->
+<div id="main" style="position: absolute;top:5%;width: 100%;height: 95%" ;></div>
+
+</body>
+</html>
+<script>
+
+    //定义jquery文档加载事件
+    $(function () {
+        histogram();
+
+    })
+
+    //更改查询框类型
+    function changeVal() {
+        var value = $("#convalue").val();
+        console.log(value);
+        if (value === "销售日期") {
+            $("#saleTime").attr("hidden", false);
+        } else {
+            $("#saleTime").attr("hidden", true);
+        }
+    }
+
+    //柱状图函数
+    function histogram() {
+
+        //获取选中的查询时间
+        var saleTime = $("#saleTime").val();
+        var convalue = $("#convalue").val();
+        //获取选中的查询条件
+        var condition = $("#condition").val();
+        $.ajax({
+            url: "/sale/lineChartAjax",
+            type: "get",
+            data: {"saleTime": saleTime, "condition": condition, "convalue": convalue},
+            dataType: "json",
+            success: function (data) {
+                var myChart = echarts.init(document.getElementById('main'));
+                console.log(data)
+                // 指定图表的配置项和数据
+                var option = {
+                    title: {
+                        text: '',
+                        subtext: ''
+                    },
+                    xAxis: {
+                        type: 'category',
+                        data: data.value_x,
+                    },
+                    yAxis: {
+                        type: 'value'
+                    },
+                    series: [{
+                        data: data.value_y,
+                        type: 'line'
+                    }]
+
+                };
+                if (convalue === "全部记录") {
+                    if (condition === "数量") {
+                        option.title.text = "统计" + convalue + "的库存商品" + condition;
+                    } else {
+                        option.title.text = "统计" + convalue + "的库存商品" + condition;
+                    }
+                } else if (convalue === "销售日期") {
+                    if (condition === "数量") {
+                        option.title.text = "统计" + convalue + saleTime + "的库存商品" + condition;
+                    } else {
+                        option.title.text = "统计" + convalue + saleTime + "的库存商品" + condition;
+                    }
+
+                }
+                // 使用刚指定的配置项和数据显示图表。
+                myChart.setOption(option);
+            }
+        })
+
+    }
+
+</script>

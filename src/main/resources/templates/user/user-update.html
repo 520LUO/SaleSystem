@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <title>用户信息修改</title>
+    <meta name="renderer" content="webkit">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="viewport"
+          content="width=device-width,user-scalable=yes, minimum-scale=0.4, initial-scale=0.8,target-densitydpi=low-dpi"/>
+    <link rel="stylesheet" href="/css/font.css">
+    <link rel="stylesheet" href="/css/xadmin.css">
+    <script type="text/javascript" src="https://cdn.bootcss.com/jquery/3.2.1/jquery.min.js"></script>
+    <script src="/lib/layui/layui.js" charset="utf-8"></script>
+    <script type="text/javascript" src="/js/xadmin.js"></script>
+</head>
+
+<body class="register-bg">
+<div class="x-body" style="position: absolute;left: 30%;right: 30%;top: 5%">
+    <form class="layui-form">
+
+        <div class="layui-form-item">
+            <div class="layui-upload-list" style="margin-left: 125px">
+                <img th:src="${user.url}" class="layui-upload-img" id="demo1" width="150" height="70">
+                <p id="demoText"></p>
+            </div>
+        </div>
+    </form>
+
+    <form class="layui-form">
+        <input type="hidden" name=" url" class="image" id="url" th:value="${user.url}" autocomplete="off" required="">
+
+        <div class="layui-form-item">
+            <label for="userId" class="layui-form-label">
+                <span class="x-red">*</span>编号
+            </label>
+            <div class="layui-input-inline">
+                <input type="text" id="userId" disabled name="userId" th:value="${user.userId}" required=""
+                       autocomplete="off" class="layui-input">
+            </div>
+        </div>
+
+        <div class="layui-form-item">
+            <label for="username" class="layui-form-label">
+                <span class="x-red">*</span>登录名
+            </label>
+            <div class="layui-input-inline">
+                <input type="text" id="userName" name="userName" required="" lay-verify="userName"
+                       th:value="${user.userName}" autocomplete="off" class="layui-input">
+            </div>
+        </div>
+
+        <div class="layui-form-item">
+            <label for="userEmail" class="layui-form-label">
+                <span class="x-red">*</span>邮箱
+            </label>
+            <div class="layui-input-inline">
+                <input type="text" id="userEmail" name="userEmail" required="" th:value="${user.userEmail}"
+                       autocomplete="off" lay-verify="userEmail" class="layui-input">
+            </div>
+        </div>
+
+        <div class="layui-form-item">
+            <label for="userPosition" class="layui-form-label">
+                <span class="x-red">*</span>职位
+            </label>
+            <div class="layui-input-inline">
+                <input type="hidden" id="position" th:value="${user.userPosition}">
+                <select class="layui-input" id="userPosition" name="userPosition" style="width: 100px;height: 37px">
+                    <option value="管理员">管理员</option>
+                    <option value="超级管理员">超级管理员</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="layui-form-item">
+            <label for="userLevel" class="layui-form-label">
+                <span class="x-red">*</span>权限等级
+            </label>
+            <div class="layui-input-inline">
+                <input type="hidden" id="level" th:value="${user.userLevel}">
+                <select class="layui-input" id="userLevel" name="userLevel" style="width: 100px;height: 37px">
+                    <option value="2">普通</option>
+                    <option value="1">最高</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="layui-form-item">
+            <button class="layui-btn" lay-filter="add" lay-submit="">修改</button>
+            <button type="button" class="layui-btn" id="test1">更改头像</button>
+            <span id="info" style="color: red"></span>
+        </div>
+
+    </form>
+</div>
+<script>
+    $(function () {
+        var position = $("#position").val();
+        var level = $("#level").val();
+        $("#userPosition option[value='" + position + "']").attr("selected", 'true');
+        $("#userLevel option[value='" + level + "']").attr("selected", 'true');
+    })
+
+    //设置用户名输入框鼠标焦点事件，校验用户名
+    var username = document.getElementById("userName");
+    username.onblur = function () {
+        var name = document.getElementById("userName").value;
+        if (name === "undefined" || name === null || name === "") {
+            layer.alert("请输入用户名");
+        } else if (name.length < 3) {
+            layer.alert("昵称至少得3个字符");
+        } else {
+            $.ajax({
+                url: "/admin/focusAjax",
+                type: "post",
+                data: {"userName": name},
+                dataType: "json",
+                success: function (data) {
+                    if (data.info === "已被注册") {
+                        layer.alert("用户名已被注册，请重新输入");
+                    }
+                }
+            })
+        }
+    }
+
+
+    layui.use(['form', 'layer'], function () {
+        $ = layui.jquery;
+        const form = layui.form
+            , layer = layui.layer;
+        const myreg = /^\w+([-+.]\w+)*@\w+([-.]\w+)*\.\w+([-.]\w+)*$/;
+        //自定义验证规则
+        form.verify({
+            userEmail: function (value) {
+                if (!myreg.test(value)) {
+                    return '邮箱格式不正确';
+                }
+            },
+            userName: function (value) {
+                if (value.length < 3) {
+                    return '昵称至少得3个字符';
+                }
+            }
+        });
+
+        //修改提交
+        form.on('submit(add)', function (data) {
+            $.ajax({//提交数据
+                url: "/super/updateAjax",
+                type: "post",
+                data: data.field,
+                dataType: "json",//返回的数据类型
+                success: function (data) {
+                    $("#info").text(data.info)
+                    if (data.info == "修改成功") {
+                        setTimeout(function () {
+                            parent.window.location.href = parent.window.location.href;
+                        }, 1000);
+                    } else {
+                        layer.alert("抱歉，修改失败！")
+                    }
+                }
+            })
+        })
+
+
+    });
+
+    /*加载layui文件上传组件*/
+    layui.use('upload', function () {
+        var $ = layui.jquery
+            , upload = layui.upload;
+        //普通图片上传
+        var uploadInst = upload.render({
+            elem: '#test1' // 鼠标点击事件绑定按钮元素
+            , url: '/admin/uploadAjax' //服务端地址
+            , accept: 'images' //上传文件类型 可选值有：images（图片）、file（所有文件）、video（视频）、audio（音频）
+            , size: 50000  //文件大小 单位是kb
+            , before: function (obj) { // 不管上传成功 还是失败 ，都需要执行的函数
+                obj.preview(function (index, file, result) {
+                    //显示上传图片
+                    $('#demo1').attr('src', result);
+                });
+            }
+            , done: function (res) {  //访问服务端后的执行的函数
+                //如果上传失败
+                if (res.code > 0) {
+                    return layer.msg('上传失败');
+                }
+                //上传成功的提示信息
+                var demoText = $('#demoText');
+                demoText.html('<span style="color: #4cae4c;">上传成功</span>');
+
+                var fileupload = $(".image");
+                //把图片在项目中的路径存入到 属性 class=image的input框中
+                fileupload.attr("value", res.src);
+                console.log(fileupload.attr("value"));
+
+                // 上面等同于下面这个代码
+                $("#url").val(res.src);
+            }
+            , error: function () {
+                //演示失败状态，并实现重传
+                var demoText = $('#demoText');
+                demoText.html('<span style="color: #FF5722;">上传失败</span> <a class="layui-btn layui-btn-xs demo-reload">重试</a>');
+                demoText.find('.demo-reload').on('click', function () {
+                    uploadInst.upload();
+                });
+            }
+        });
+    });
+</script>
+<script>var _hmt = _hmt || [];
+(function () {
+    var hm = document.createElement("script");
+    hm.src = "https://hm.baidu.com/hm.js?b393d153aeb26b46e9431fabaf0f6190";
+    var s = document.getElementsByTagName("script")[0];
+    s.parentNode.insertBefore(hm, s);
+})();</script>
+</body>
+
+</html>

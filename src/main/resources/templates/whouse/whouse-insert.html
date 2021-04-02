@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <title>欢迎页面-X-admin2.0</title>
+    <meta name="renderer" content="webkit">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="viewport"
+          content="width=device-width,user-scalable=yes, minimum-scale=0.4, initial-scale=0.8,target-densitydpi=low-dpi"/>
+    <link rel="stylesheet" href="/css/font.css">
+    <link rel="stylesheet" href="/css/xadmin.css">
+    <script type="text/javascript" src="https://cdn.bootcss.com/jquery/3.2.1/jquery.min.js"></script>
+    <script src="/lib/layui/layui.js" charset="utf-8"></script>
+    <script type="text/javascript" src="/js/xadmin.js"></script>
+</head>
+
+<body class="register-bg">
+<div class="x-body" style="position: absolute;left: 30%;right: 30%;top: 10%">
+
+    <form class="layui-form">
+
+        <div class="layui-form-item">
+            <label for="whNum" class="layui-form-label">
+                <span class="x-red">*</span>仓库编号
+            </label>
+            <div class="layui-input-inline">
+                <input type="text" id="whNum" required="required" name="whNum" lay-verify="required"
+                       autocomplete="off" class="layui-input" >
+            </div>
+        </div>
+
+        <div class="layui-form-item">
+            <label for="whAdress" class="layui-form-label">
+                <span class="x-red">*</span>仓库地址
+            </label>
+            <div class="layui-input-inline">
+                <input type="text" required="required" id="whAdress" name="whAdress" lay-verify="required"
+                       autocomplete="off" class="layui-input">
+            </div>
+        </div>
+
+        <div class="layui-form-item">
+            <label for="whArea" class="layui-form-label">
+                <span class="x-red">*</span>仓库面积(㎡)
+            </label>
+            <div class="layui-input-inline">
+                <input type="text" required="required" value="㎡" id="whArea" name="whArea" lay-verify="required"
+                       autocomplete="off" class="layui-input">
+            </div>
+        </div>
+
+        <div class="layui-form-item">
+            <label for="shelves" class="layui-form-label">
+                <span class="x-red">*</span>货架号
+            </label>
+            <div class="layui-input-inline">
+                <input type="text" required="required" id="shelves" name="shelves" lay-verify="required"
+                       autocomplete="off" class="layui-input">
+            </div>
+        </div>
+
+        <div class="layui-form-item">
+            <label for="whClass" class="layui-form-label">
+                <span class="x-red">*</span>仓库类别
+            </label>
+            <div class="layui-input-inline">
+                <select class="layui-input" id="whClass" name="whClass" style="width: 100px;height: 37px">
+                    <option value="日用百货">日用百货</option>
+                    <option value="生鲜饮品">生鲜饮品</option>
+                    <option value="休闲零食">休闲零食</option>
+                    <option value="方便速食">方便速食</option>
+                </select>
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label for="whNote" class="layui-form-label">
+                <span class="x-red">*</span>备注
+            </label>
+            <div class="layui-input-inline">
+                <input type="text" required="" id="whNote" name="whNote" lay-verify="required"
+                       autocomplete="off" class="layui-input">
+            </div>
+        </div>
+
+        <div class="layui-form-item">
+            <button class="layui-btn"  style="width: 200px;margin-left: 105px" lay-filter="add" lay-submit="">保存</button>
+            <div class="layui-form-item">
+                <span id="info" style="color: red"></span>
+            </div>
+        </div>
+
+    </form>
+</div>
+<script>
+
+
+    layui.use(['form', 'layer'], function () {
+        $ = layui.jquery;
+        const form = layui.form
+            , layer = layui.layer;
+        //自定义验证规则
+        form.verify({});
+
+        //提交
+        form.on('submit(add)', function (data) {
+
+
+                $.ajax({//提交数据
+                    url: "/ware/insertAjax",
+                    type: "post",
+                    data: data.field,
+                    dataType: "json",//返回的数据类型
+                    success: function (data) {
+
+                        if (data.info === "添加成功") {
+                            $("#info").text(data.info)
+                            setTimeout(function () {
+                                parent.window.location.href = parent.window.location.href;
+                            }, 1000);
+                        } else if (data.info === "编号已存在") {
+                            $("#info").text(data.info)
+                        } else {
+                            layer.alert("抱歉，添加失败！")
+                        }
+                    }
+                })
+        })
+    });
+
+
+</script>
+<script>var _hmt = _hmt || [];
+(function () {
+    var hm = document.createElement("script");
+    hm.src = "https://hm.baidu.com/hm.js?b393d153aeb26b46e9431fabaf0f6190";
+    var s = document.getElementsByTagName("script")[0];
+    s.parentNode.insertBefore(hm, s);
+})();</script>
+</body>
+
+</html>

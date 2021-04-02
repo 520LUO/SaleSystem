@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="stylesheet" href="/css/font.css">
+    <link rel="stylesheet" href="/css/xadmin.css">
+    <script type="text/javascript" src="https://cdn.bootcss.com/jquery/3.2.1/jquery.min.js"></script>
+    <script src="/lib/layui/layui.js" charset="utf-8"></script>
+    <script type="text/javascript" src="/js/xadmin.js"></script>
+    <meta charset="UTF-8">
+    <title>销售记录</title>
+</head>
+<body class="list-bg">
+
+<form class="x-so" action="/sale/list" method="get" id="myform">
+    </br></br></br>
+    <select id="condition" name="condition" onmouseout="changeVal()" style="width: 120px;height: 33px" >
+        <option value="商品编号">商品编号</option>
+        <option value="销售时间">销售时间</option>
+        <option value="买家电话">买家电话</option>
+
+    </select>
+    <input id="convalue1" name="convalue1" type="hidden" th:value="${convalue}">
+    <input id="condition1" name="condition1" type="hidden" th:value="${condition}">
+    <input class="layui-input" id="convalue" name="convalue" type="text" placeholder="请输入查询条件">
+
+    <button type="button" class="layui-btn layui-btn-normal" onclick="search()">查询</button>
+    <button class="layui-btn layui-btn-warm" type="button" onclick="insert()">添加</button>
+    <a class="layui-btn layui-btn-warm" type="button" onclick="downloadFile()">导出Excel</a>
+</form>
+
+<table class="layui-table">
+    <thead>
+    <th>编号</th>
+    <th>商品编号</th>
+    <th>商品名称</th>
+    <th>单价</th>
+    <th>数量</th>
+    <th>总价</th>
+    <th>入库时间</th>
+    <th>买家电话</th>
+    <th>买家邮箱</th>
+    <th>出货仓库</th>
+    <th>销售地址</th>
+    <th>操作</th>
+
+    </thead>
+    <tbody>
+    <tr th:each="i:${info.list}">
+        <td th:text="${i.saleId}"></td>
+        <td th:text="${i.saleNum}"></td>
+        <td th:text="${i.saleName}"></td>
+        <td th:text="${i.salePrice}"></td>
+        <td th:text="${i.saleCount}"></td>
+        <td th:text="${i.saleTotal}"></td>
+        <td th:text="${i.saleTime}"></td>
+        <td th:text="${i.buyTel}"></td>
+        <td th:text="${i.buyEmail}"></td>
+        <td th:text="${i.storeArea}"></td>
+        <td th:text="${i.saleArea}"></td>
+
+        <td>
+            <button class="layui-btn" type="button" onclick="update(this)">修改</button>
+        </td>
+
+    </tr>
+    </tbody>
+
+</table>
+<div id="pageInfo">
+    <a class="layui-btn layui-btn-normal" th:href="@{/sale/list(page=${info.pre})}">上一页</a>
+    <a class="layui-btn layui-btn-normal" th:href="@{/sale/list(page=${info.next})}">下一页</a>
+    一共有<span th:text="${info.totalPage}"></span>个页面
+    当前第<span th:text="${info.cur}"></span>页
+</div>
+<div id="totalInfo" style="margin-left: 29%;margin-top: 10px">
+
+    <div class="layui-form-item">
+        <label class="layui-form-label">
+            销售记录
+        </label>
+        <div class="layui-input-inline" style="width: auto">
+            <input type="text" disabled id="totalCount" style="width: 80px;height: 30px" name="count"
+                   th:value="${info.total}" class="layui-input">
+        </div>
+
+        <label class="layui-form-label">
+            总金额
+        </label>
+        <div class="layui-input-inline" style="width: auto">
+            <input type="text" disabled id="totalMoney" style="width: 80px;height: 35px" name="totalMoney"
+                   th:value="${info.money}" class="layui-input">
+        </div>
+        <a href="/sale/lineChart" class="layui-btn layui-btn-danger" >商品销售折线图</a>
+        <a href="/sale/china" class="layui-btn layui-btn-danger">商品销售流动图</a>
+    </div>
+</div>
+</body>
+</html>
+<script>
+    //文档加载事件
+    $(function () { //改编查询框的值
+        var convalue = $("#convalue1").val();
+        var condition = $("#condition1").val();
+        $("#condition option[value='" + condition + "']").attr("selected", 'true');
+        $("#convalue").val(convalue);
+    })
+
+    //更改查询框类型
+    function changeVal() {
+        var condition = $("#condition").val();
+        console.log(condition);
+        if (condition === "销售时间") {
+            $("#convalue").attr("type", "date");
+        } else {
+            $("#convalue").attr("type", "text");
+        }
+    }
+
+    //导出excel
+    function downloadFile() {
+
+        window.location.href = "/sale/saleExcel";
+    }
+
+    //查询验证
+    function search() {
+        //获取用户输入的查询条件
+        const v = $("#convalue").val();
+        //获取用户选择的查询
+        const con = $("#condition").val();
+        const form = document.getElementById("myform");
+        //创建一个正则表达式对象
+        const reg = /^1(?:3\d|4[4-9]|5[0-35-9]|6[67]|7[013-8]|8\d|9\d)\d{8}$/;
+        //判断用户选择的查询条件
+        if (con === "买家电话") {
+            //验证用户的查询条件是否是数字
+            if (reg.test(v)) {
+                form.submit();
+            } else {
+                layer.alert("请输入正确的手机号");
+            }
+        } else {
+            form.submit();
+        }
+    }
+
+    //添加销售记录
+    function insert() {
+        x_admin_show("添加销售记录", "/sale/insertPage", 1000, 600)
+    }
+
+    //打开修改页面的方法
+    function update(obj) {
+        //获取选中行userId的值
+        var id = $(obj).parent().parent().find("td").eq(0).text();
+        //打开修改弹窗
+        x_admin_show("修改销售记录", "/sale/updatePage?saleId=" + id, 1000, 600);
+
+    }
+
+
+</script>

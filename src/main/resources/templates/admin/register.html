@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <title>沃得码注册系统</title>
+    <meta name="renderer" content="webkit">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="viewport"
+          content="width=device-width,user-scalable=yes, minimum-scale=0.4, initial-scale=0.8,target-densitydpi=low-dpi"/>
+    <link rel="stylesheet" href="/css/font.css">
+    <link rel="stylesheet" href="/css/xadmin.css">
+    <script type="text/javascript" src="https://cdn.bootcss.com/jquery/3.2.1/jquery.min.js"></script>
+    <script src="/lib/layui/layui.js" charset="utf-8"></script>
+    <script type="text/javascript" src="/js/xadmin.js"></script>
+</head>
+
+<body class="register-bg">
+    <div class="x-body" style="position:relative;left: 35%;right: 35%;margin-top:10%">
+        <form class="layui-form">
+
+            <div class="layui-form-item">
+                <div class="layui-upload-list" style="margin-left: 170px; ">
+                        <img  src="/images/add.png"style="border: #148cf1 13px;border-radius: 50%;" class="layui-upload-img" id="demo1" width="70" height="70">
+                    <p id="demoText"></p>
+                </div>
+            </div>
+        </form>
+    <form class="layui-form" >
+        <input type="hidden" name="url" class="image" id="url">
+        <div class="layui-form-item">
+            <label for="username" class="layui-form-label">
+                <span class="x-red">*</span>登录名
+            </label>
+            <div class="layui-input-inline">
+                <input type="text" id="userName" name="userName" required="" lay-verify="userName"
+                       autocomplete="off" class="layui-input">
+            </div>
+            <div class="layui-form-mid layui-word-aux">
+                不得少于3个字符
+            </div>
+        </div>
+
+
+        <div class="layui-form-item">
+            <label for="L_pass" class="layui-form-label">
+                <span class="x-red">*</span>密码
+            </label>
+            <div class="layui-input-inline">
+                <input type="password" id="L_pass" name="userPwd" required="" lay-verify="pass"
+                       autocomplete="off" class="layui-input">
+            </div>
+            <div class="layui-form-mid layui-word-aux">
+                3到12个字符
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label for="L_repass" class="layui-form-label">
+                <span class="x-red">*</span>确认密码
+            </label>
+            <div class="layui-input-inline">
+                <input type="password" id="L_repass" name="surePwd" required="" lay-verify="repass"
+                       autocomplete="off" class="layui-input">
+            </div>
+        </div>
+
+        <div class="layui-form-item">
+            <label for="username" class="layui-form-label">
+                <span class="x-red">*</span>邮箱
+            </label>
+            <div class="layui-input-inline">
+                <input type="text" id="userEmail" name="userEmail" required=""
+                       autocomplete="off" class="layui-input">
+            </div>
+            <div class="layui-form-mid layui-word-aux">
+                <input id="sendBtn" class="layui-btn layui-btn-normal" value="发送验证码"  type="button" onclick="sendCode()" style="margin-top: -8px;width: 100px;height: 30px">
+            </div>
+        </div>
+
+        <div class="layui-form-item">
+            <label for="username" class="layui-form-label">
+                <span class="x-red">*</span>验证码
+            </label>
+            <div class="layui-input-inline">
+                <input type="text" id="code" name="code" required=""
+                       autocomplete="off" class="layui-input">
+            </div>
+            <div class="layui-form-mid layui-word-aux">
+                <span id="infoCode" style="color: red"></span>
+            </div>
+        </div>
+
+        <div class="layui-form-item">
+            <label for="L_repass" class="layui-form-label">
+            </label>
+            <button class="layui-btn" lay-filter="add" lay-submit=""style="width:190px;background-color: #1E9FFF" >注册</button>
+                <a  href="/admin/loginPage" style="color: #000000;font-style: italic;line-height: 1px" >已有账号？去登录>></a>
+<!--            <button type="button" class="layui-btn" id="test1">上传头像</button>-->
+
+        </div>
+        <span id="info" style="color: #ff0000"></span>
+    </form>
+</div>
+<script>
+
+    //设置用户名输入框鼠标焦点事件，校验用户名
+    var username = document.getElementById("userName");
+    username.onblur = function () {
+        var name = document.getElementById("userName").value;
+        if (name === "undefined" || name === null || name === "") {
+            layer.alert("请输入用户名");
+        } else if (name.length < 3) {
+            layer.msg("昵称至少得3个字符");
+        } else {
+            $.ajax({
+                url: "/admin/focusAjax",
+                type: "post",
+                data: {"userName": name},
+                dataType: "json",
+                success: function (data) {
+                    if (data.info === "已被注册") {
+                        layer.msg("用户名已被注册，请重新输入");
+                    }
+                }
+            })
+        }
+    }
+
+    //发送验证码
+    function sendCode() {
+        //获取用户输入的邮箱
+        var email = $("#userEmail").val();
+        var InterValObj; //timer变量，控制时间
+        var count = 60; //间隔函数，1秒执行
+        var curCount;//当前剩余秒数
+        //对电子邮件的验证
+        var myreg = /^\w+([-+.]\w+)*@\w+([-.]\w+)*\.\w+([-.]\w+)*$/;
+        if (!myreg.test(email)) {
+            layer.msg("邮箱格式不正确");
+        } else {
+
+            $.ajax({
+                url: "/admin/sendEmail",
+                type: "post",
+                data: {"email": email},//传js对象
+                dataType: "json",//返回的数据类型
+                success: function (data) {
+                    layer.msg(data.info)
+                }
+            })
+                curCount = count;
+                // 设置button效果，开始计时
+                document.getElementById("sendBtn").setAttribute("disabled","true" );//设置按钮为禁用状态
+                document.getElementById("sendBtn").value=curCount + "秒后重获";//更改按钮文字
+                InterValObj = window.setInterval(SetRemainTime, 1000); // 启动计时器timer处理函数，1秒执行一次
+            }
+
+            //timer处理函数
+            function SetRemainTime() {
+                if (curCount == 0) {//超时重新获取验证码
+                    window.clearInterval(InterValObj);// 停止计时器
+                    document.getElementById("sendBtn").removeAttribute("disabled");//移除禁用状态改为可用
+                    document.getElementById("sendBtn").value="重获验证码";
+                }else {
+                    curCount--;
+                    document.getElementById("sendBtn").value=curCount + "秒后重获";
+                }
+            }
+
+    }
+
+    layui.use(['form', 'layer'], function () {
+        $ = layui.jquery;
+        var form = layui.form
+            , layer = layui.layer;
+
+        //自定义验证规则
+        form.verify({
+            userName: function (value) {
+                if (value.length < 3) {
+                    return '昵称至少得3个字符';
+                }
+            }
+            , pass: [/(.+){3,12}$/, '密码必须3到12位']
+            , repass: function (value) {
+                if ($('#L_pass').val() != $('#L_repass').val()) {
+                    return '两次密码不一致';
+                }
+            }
+        });
+
+        //注册提交
+        form.on('submit(add)', function (dd) {
+            console.log(dd);
+            $.ajax({
+                url: "/admin/verifyCode",
+                type: "post",
+                data: dd.field,
+                dataType: "json",
+                success: function (data) {
+                    if (data.info == "验证成功") {
+                        $.ajax({//提交数据
+                            url: "/admin/registerAjax",
+                            type: "post",
+                            data: dd.field,
+                            dataType: "json",//返回的数据类型
+                            success: function (data) {//data一般是json格式，服务端传回来的值
+                                //如果注册成功，直接跳转到登录界面
+                                if (data.info == "注册成功") {
+                                    layer.msg(data.info, {
+                                        icon: 1,
+                                        time: 2000 //2秒关闭（如果不配置，默认是3秒）
+                                    })
+                                    setTimeout(function () {
+                                        window.location.href = "/admin/loginPage";
+                                    }, 1000);
+                                }
+                            }
+                        })
+                    } else {
+                        layer.msg(data.info, {
+                            icon: 2,
+                            time: 2000 //2秒关闭（如果不配置，默认是3秒）
+                        })
+                    }
+                }
+            })
+
+            return false;
+        });
+    });
+
+    /*加载layui文件上传组件*/
+    layui.use('upload', function () {
+        var $ = layui.jquery
+            , upload = layui.upload;
+        //普通图片上传
+        var uploadInst = upload.render({
+            elem: '#demo1' // 鼠标点击事件绑定按钮元素
+            , url: '/admin/uploadAjax' //服务端地址
+            , accept: 'images' //上传文件类型 可选值有：images（图片）、file（所有文件）、video（视频）、audio（音频）
+            , size: 50000  //文件大小 单位是kb
+            , before: function (obj) { // 不管上传成功 还是失败 ，都需要执行的函数
+                obj.preview(function (index, file, result) {
+                    //显示上传图片
+                    $('#demo1').attr('src', result);
+                });
+            }
+            , done: function (res) {  //访问服务端后的执行的函数
+                //如果上传失败
+                if (res.code > 0) {
+                    return layer.msg('上传失败');
+                }
+                //上传成功的提示信息
+                var demoText = $('#demoText');
+                demoText.html('<span style="color: #4cae4c;">上传成功</span>');
+
+                var fileupload = $(".image");
+                //把图片在项目中的路径存入到 属性 class=image的input框中
+                fileupload.attr("value", res.src);
+                console.log(fileupload.attr("value"));
+
+                // 上面等同于下面这个代码
+                $("#url").val(res.src);
+            }
+            , error: function () {
+                //演示失败状态，并实现重传
+                var demoText = $('#demoText');
+                demoText.html('<span style="color: #FF5722;">上传失败</span> <a class="layui-btn layui-btn-xs demo-reload">重试</a>');
+                demoText.find('.demo-reload').on('click', function () {
+                    uploadInst.upload();
+                });
+            }
+        });
+    });
+</script>
+<script>var _hmt = _hmt || [];
+(function () {
+    var hm = document.createElement("script");
+    hm.src = "https://hm.baidu.com/hm.js?b393d153aeb26b46e9431fabaf0f6190";
+    var s = document.getElementsByTagName("script")[0];
+    s.parentNode.insertBefore(hm, s);
+})();</script>
+</body>
+
+</html>

@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <title>修改供货商信息</title>
+    <meta name="renderer" content="webkit">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="viewport"
+          content="width=device-width,user-scalable=yes, minimum-scale=0.4, initial-scale=0.8,target-densitydpi=low-dpi"/>
+    <link rel="stylesheet" href="/css/font.css">
+    <link rel="stylesheet" href="/css/xadmin.css">
+    <script type="text/javascript" src="https://cdn.bootcss.com/jquery/3.2.1/jquery.min.js"></script>
+    <script src="/lib/layui/layui.js" charset="utf-8"></script>
+    <script type="text/javascript" src="/js/xadmin.js"></script>
+</head>
+
+<body class="register-bg">
+<div class="x-body" style="position: absolute;left: 30%;right: 30%;top: 5%">
+    <form class="layui-form">
+
+        <div class="layui-form-item">
+            <div class="layui-upload-list" style="margin-left: 125px">
+                <img class="layui-upload-img" id="demo1" th:src="${supply.certUrl}" width="150" height="70">
+                <p id="demoText"></p>
+            </div>
+        </div>
+    </form>
+
+    <form class="layui-form" onSubmit="return inputNull(this)">
+
+        <input type="hidden" name="certUrl" class="image" id="certUrl" th:value="${supply.certUrl}">
+        <input type="hidden" name="supId" id="supId" th:value="${supply.supId}">
+
+        <div class="layui-form-item">
+            <label for="supAgent" class="layui-form-label">
+                <span class="x-red">*</span>代理人
+            </label>
+            <div class="layui-input-inline">
+                <input type="text" id="supAgent" name="supAgent" th:value="${supply.supAgent}" required=""
+                       lay-verify="supAgent"
+                       autocomplete="off" class="layui-input">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">
+                <span class="x-red">*</span>性别
+            </label>
+            <input type="hidden" id="sex" th:value="${supply.sex}"/>
+            <div class="layui-input-block">
+                <input type="radio" name="sex" value="男" title="男">
+                <input type="radio" name="sex" value="女" title="女">
+            </div>
+        </div>
+
+        <div class="layui-form-item">
+            <label for="supTel" class="layui-form-label">
+                <span class="x-red">*</span>联系电话
+            </label>
+            <div class="layui-input-inline">
+                <input type="text" id="supTel" name="supTel" th:value="${supply.supTel}" required="" lay-verify="supTel"
+                       autocomplete="off" class="layui-input">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label for="supEmail" class="layui-form-label">
+                <span class="x-red">*</span>邮箱地址
+            </label>
+            <div class="layui-input-inline">
+                <input type="text" id="supEmail" name="supEmail" th:value="${supply.supEmail}" required=""
+                       lay-verify="supEmail"
+                       autocomplete="off" class="layui-input">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label for="certName" class="layui-form-label">
+                <span class="x-red">*</span>证件名称
+            </label>
+            <div class="layui-input-inline">
+                <input type="text" id="certName" name="certName" th:value="${supply.certName}" required=""
+                       lay-verify="certName"
+                       autocomplete="off" class="layui-input">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label for="certNum" class="layui-form-label">
+                <span class="x-red">*</span>证件号码
+            </label>
+            <div class="layui-input-inline">
+                <input type="text" id="certNum" name="certNum" required="" th:value="${supply.certNum}"
+                       lay-verify="certNum"
+                       autocomplete="off" class="layui-input">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label for="startTime" class="layui-form-label">
+                <span class="x-red">*</span>签发时间
+            </label>
+            <div class="layui-input-inline">
+                <input type="date" id="startTime" name="startTime" required="" th:value="${supply.startTime}"
+                       lay-verify="startTime"
+                       autocomplete="off" class="layui-input" value="2021-02-20">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label for="validTime" class="layui-form-label">
+                <span class="x-red">*</span>有效期限
+            </label>
+            <div class="layui-input-inline">
+                <input type="hidden" id="validTime1" th:value="${supply.validTime}"/>
+                <select class="layui-input" id="validTime" name="validTime" lay-verify="required"
+                        style="width: 100px;height: 37px">
+                    <option value="1年">1年</option>
+                    <option value="2年">2年</option>
+                    <option value="3年">3年</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="layui-form-item" style="margin-left: 120px">
+            <button class="layui-btn" lay-filter="add" lay-submit="">保存</button>
+            <button type="button" class="layui-btn" id="test1">上传证件</button>
+            <span id="info" style="color: red"></span>
+        </div>
+
+    </form>
+</div>
+<script>
+    $(function () {
+        //通过文档加载事件动态改编单选框的值
+        var sex = $("#sex").val();
+        var validTime = $("#validTime1").val();
+        $("input:radio[name='sex'][value=" + sex + "]").attr('checked', 'true');
+        $("#validTime option[value='" + validTime + "']").attr("selected", 'true');
+    })
+
+    //判断输入值是否为空
+    function inputNull(form) {
+
+        for (i = 0; i < form.length; i++) {
+            //form属性的elements的首字母e要小写
+            if (form.elements[i].value === "") {
+                form.elements[i].focus();
+                return false;
+            }
+
+        }
+    }
+
+    layui.use(['form', 'layer'], function () {
+        $ = layui.jquery;
+        const form = layui.form
+            , layer = layui.layer;
+        const myreg = /^\w+([-+.]\w+)*@\w+([-.]\w+)*\.\w+([-.]\w+)*$/;
+        const reg = /^1[0-9]{10}$/;
+        //自定义验证规则
+        form.verify({
+            supEmail: function (value) {
+                if (!myreg.test(value)) {
+                    return '邮箱格式不正确';
+                }
+            },
+            supTel: function (value) {
+                if (!reg.test(value)) {
+                    return '手机号码有误';
+                }
+            }
+        });
+
+        //提交
+        form.on('submit(add)', function (data) {
+            //验证图片是否为空
+            var url = document.getElementById("certUrl").value;
+            if (url === "undefined" || url === null || url === "") {
+                layer.alert("请上传图片")
+            } else {
+                $.ajax({//提交数据
+                    url: "/supply/updateAjax",
+                    type: "post",
+                    data: data.field,
+                    dataType: "json",//返回的数据类型
+                    success: function (data) {
+                        $("#info").text(data.info)
+                        if (data.info === "修改成功") {
+                            setTimeout(function () {
+                                parent.window.location.href = parent.window.location.href;
+                            }, 1000);
+                        } else {
+                            layer.alert("抱歉，修改失败！")
+                        }
+                    }
+                })
+            }
+        })
+    });
+
+    /*加载layui文件上传组件*/
+    layui.use('upload', function () {
+        var $ = layui.jquery
+            , upload = layui.upload;
+        //普通图片上传
+        var uploadInst = upload.render({
+            elem: '#test1'// 鼠标点击事件绑定按钮元素
+            , url: '/supply/uploadAjax' //服务端地址
+            , accept: 'images' //上传文件类型 可选值有：images（图片）、file（所有文件）、video（视频）、audio（音频）
+            , size: 50000  //文件大小 单位是kb
+            , before: function (obj) { // 不管上传成功 还是失败 ，都需要执行的函数
+                obj.preview(function (index, file, result) {
+                    //显示上传图片
+                    $('#demo1').attr('src', result);
+                });
+            }
+            , done: function (res) {  //访问服务端后的执行的函数
+                //如果上传失败
+                if (res.code > 0) {
+                    return layer.msg('上传失败');
+                }
+                //上传成功的提示信息
+                var demoText = $('#demoText');
+                demoText.html('<span style="color: #4cae4c;">上传成功</span>');
+
+                $("#certUrl").val(res.src);
+            }
+            , error: function () {
+                //演示失败状态，并实现重传
+                var demoText = $('#demoText');
+                demoText.html('<span style="color: #FF5722;">上传失败</span> <a class="layui-btn layui-btn-xs demo-reload">重试</a>');
+                demoText.find('.demo-reload').on('click', function () {
+                    uploadInst.upload();
+                });
+            }
+        });
+    });
+</script>
+<script>var _hmt = _hmt || [];
+(function () {
+    var hm = document.createElement("script");
+    hm.src = "https://hm.baidu.com/hm.js?b393d153aeb26b46e9431fabaf0f6190";
+    var s = document.getElementsByTagName("script")[0];
+    s.parentNode.insertBefore(hm, s);
+})();</script>
+</body>
+
+</html>

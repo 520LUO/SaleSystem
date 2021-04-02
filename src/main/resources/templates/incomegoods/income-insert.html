@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <title>添加入库商品</title>
+    <meta name="renderer" content="webkit">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="viewport"
+          content="width=device-width,user-scalable=yes, minimum-scale=0.4, initial-scale=0.8,target-densitydpi=low-dpi"/>
+    <link rel="stylesheet" href="/css/font.css">
+    <link rel="stylesheet" href="/css/xadmin.css">
+    <script type="text/javascript" src="https://cdn.bootcss.com/jquery/3.2.1/jquery.min.js"></script>
+    <script src="/lib/layui/layui.js" charset="utf-8"></script>
+    <script type="text/javascript" src="/js/xadmin.js"></script>
+</head>
+
+<body class="register-bg">
+<div class="x-body" style="position: absolute;left: 30%;right: 30%;top: 5%">
+
+    <form class="layui-form">
+
+        <div class="layui-form-item">
+            <label for="igNum" class="layui-form-label">
+                <span class="x-red">*</span>商品编号
+            </label>
+            <div class="layui-input-inline">
+                <input type="text" id="igNum" required="required" name="igNum" lay-verify="igNum"
+                       autocomplete="off" class="layui-input"  onmouseout="getSg()">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label for="igName" class="layui-form-label">
+                <span class="x-red">*</span>商品名称
+            </label>
+            <div class="layui-input-inline">
+                <input type="text" id="igName" required="required" name="igName" lay-verify="igName"
+                       autocomplete="off" class="layui-input" >
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label for="igClass" class="layui-form-label">
+                <span class="x-red">*</span>商品类别
+            </label>
+            <div class="layui-input-inline">
+                <select class="layui-input" id="igClass" name="igClass" style="width: 100px;height: 37px">
+                    <option value="日用百货">日用百货</option>
+                    <option value="生鲜饮品">生鲜饮品</option>
+                    <option value="休闲零食">休闲零食</option>
+                    <option value="方便速食">方便速食</option>
+                </select>
+            </div>
+        </div>
+       
+
+        <div class="layui-form-item">
+            <label for="igPrice" class="layui-form-label">
+                <span class="x-red">*</span>单价
+            </label>
+            <div class="layui-input-inline">
+                <input type="text" required="required" id="igPrice" name="igPrice" lay-verify="igPrice"
+                       onblur="getTotal()"  autocomplete="off" class="layui-input">
+            </div>
+            <div class="layui-form-mid layui-word-aux">
+                元
+            </div>
+        </div>
+
+        <div class="layui-form-item">
+            <label for="igCount" class="layui-form-label">
+                <span class="x-red">*</span>数量
+            </label>
+            <div class="layui-input-inline">
+                <input type="text" required="required" id="igCount" onmouseout="getTotal()" name="igCount" lay-verify="igCount"
+                       autocomplete="off" class="layui-input">
+            </div>
+            <div class="layui-form-mid layui-word-aux">
+                个
+            </div>
+        </div>
+
+        
+        <div class="layui-form-item">
+            <label for="igTotal" class="layui-form-label">
+                <span class="x-red">*</span>总价
+            </label>
+            <div class="layui-input-inline">
+                <input type="number" required="" disabled id="igTotal" name="igTotal" lay-verify="igTotal"
+                       autocomplete="off" class="layui-input">
+            </div>
+            <div class="layui-form-mid layui-word-aux">
+                元
+            </div>
+        </div>
+
+        <div class="layui-form-item">
+            <label for="igTime" class="layui-form-label">
+                <span class="x-red">*</span>入库时间
+            </label>
+            <div class="layui-input-inline">
+                <input type="date" required="" id="igTime" name="igTime" lay-verify="igTime"
+                       autocomplete="off" class="layui-input">
+            </div>
+        </div>
+
+        <div class="layui-form-item">
+            <label for="igPerson" class="layui-form-label">
+                <span class="x-red">*</span>入库人
+            </label>
+            <div class="layui-input-inline">
+                <input type="text" required="" id="igPerson" name="igPerson" lay-verify="igPerson"
+                       autocomplete="off" class="layui-input">
+            </div>
+        </div>
+
+        <div class="layui-form-item">
+            <label for="igSupply" class="layui-form-label">
+                <span class="x-red">*</span>供货商
+            </label>
+            <div class="layui-input-inline">
+                <input type="text" required="" id="igSupply" name="igSupply" lay-verify="igSupply"
+                       autocomplete="off" class="layui-input">
+            </div>
+        </div>
+        <div class="layui-form-item">
+                <button class="layui-btn"  style="width: 200px;margin-left: 105px" lay-filter="add" lay-submit="">保存</button>
+            <div class="layui-form-item">
+                <span id="info" style="color: red"></span>
+            </div>
+        </div>
+
+
+    </form>
+</div>
+<script>
+    //计算总价
+    function getTotal(){
+        var price=$("#igPrice").val();
+        var count=$("#igCount").val();
+        $("#igTotal").val((parseInt(price))*(parseInt(count)));
+    }
+
+
+    //根据商品编号获取库存商品信息
+    function getSg() {
+        var igNum = $("#igNum").val();
+        console.log(igNum);
+        $.ajax({//提交数据
+            url: "/goods/getSgAjax",
+            type: "post",
+            data: {"igNum": igNum},
+            dataType: "json",//返回的数据类型
+            success: function (data) {
+                if (data.info != null) {
+                    var sgClass = data.info.sgClass;
+                    console.log(sgClass);
+                    $("#igName").attr("value", data.info.sgName);
+                    $("#igClass").find("option[value='" + sgClass + "']").attr("selected", true);
+                    $("#igPrice").attr("value", data.info.sgPrice);
+                    $("#igSupply").attr("value", data.info.sgSupply);
+                } else {
+                    $("#igName").attr("value", "");
+                    $("#igClass option[value='日用百货']").attr("selected", "selected");
+                    $("#igPrice").attr("value", "");
+                    $("#igSupply").attr("value", "");
+                }
+            }
+        })
+    }
+    
+    //验证输入框是否为空
+    function check() {
+        if ($("#igNum").val() === "") {
+            layer.alert("请输入商品编号");
+            return false;
+        } else if ($("#igPrice").val() === "") {
+            layer.alert("请输入商品单价");
+            return false;
+        } else if ($("#igCount").val() === "") {
+            layer.alert("请输入商品数量");
+            return false;
+        } else if ($("#igTime").val() === "") {
+            layer.alert("请输入入库时间");
+            return false;
+        } else if ($("#igPerson").val() === "") {
+            layer.alert("请输入入库人");
+            return false;
+        } else if ($("#igSupply").val() === "") {
+            layer.alert("请输入供货商");
+            return false;
+        } else return true;
+    }
+
+
+    layui.use(['form', 'layer'], function () {
+        $ = layui.jquery;
+        const form = layui.form
+            , layer = layui.layer;
+        //自定义验证规则
+        var numreg=/^([1-9][0-9]*)+(.[0-9]{1,2})?$/;
+        var conreg=/^\d+$/;
+        form.verify({
+            igPrice: [numreg, '请输入正确的金额'],
+            igCount:[conreg,"请输入正确的数量"]
+        });
+
+        //提交
+        form.on('submit(add)', function (data) {
+            const checking = check();
+            if (checking) {
+                $.ajax({//提交数据
+                    url: "/goods/insertAjax",
+                    type: "post",
+                    data: data.field,
+                    dataType: "json",//返回的数据类型
+                    success: function (data) {
+
+                        if (data.info === "添加成功") {
+                            $("#info").text(data.info)
+                            setTimeout(function () {
+                                parent.window.location.href = parent.window.location.href;
+                            }, 1000);
+                        } else {
+                            layer.alert("抱歉，添加失败！")
+                        }
+                    }
+                })
+            }
+        })
+    });
+
+
+</script>
+<script>var _hmt = _hmt || [];
+(function () {
+    var hm = document.createElement("script");
+    hm.src = "https://hm.baidu.com/hm.js?b393d153aeb26b46e9431fabaf0f6190";
+    var s = document.getElementsByTagName("script")[0];
+    s.parentNode.insertBefore(hm, s);
+})();</script>
+</body>
+
+</html>

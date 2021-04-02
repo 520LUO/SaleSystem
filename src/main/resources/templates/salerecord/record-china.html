@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <script src="/js/jquery-3.2.1.min.js"></script>
+    <script src="/js/echarts.min.js"></script>
+    <script src="/js/china.js"></script>
+    <style>
+        html, body {
+            height: 100%;
+        }
+    </style>
+</head>
+<body>
+<div style="position: absolute;left: 42%;">
+    <select id="condition" name="condition" onmouseout="changeVal()" style="width: 120px;height: 25px"
+            class="layui-input">
+        <option value="全部记录">全部记录</option>
+        <option value="销售日期">销售日期</option>
+    </select>
+    <input id="saleTime" name="saleTime" type="date" class="layui-input" hidden style="width: 135px;height: 25px">
+
+
+    <button type="button" onclick="flowGraph()">查询</button>
+</div>
+
+<!--创建一个容器-->
+<div id="main" style="position: absolute;top:5%;width: 98%;height: 95%" ;></div>
+
+</body>
+</html>
+<script>
+    //定义jquery文档加载事件
+    $(function () {
+
+        flowGraph();
+    })
+
+    //更改查询框类型
+    function changeVal() {
+        var con = $("#condition").val();
+        console.log(con);
+        if (con === "销售日期") {
+            $("#saleTime").attr("hidden", false);
+        } else {
+            $("#saleTime").attr("hidden", true);
+        }
+    }
+
+    //商品流动图函数
+    function flowGraph() {
+        var con = $("#condition").val();
+        var time = $("#saleTime").val();
+
+        $.ajax({
+            url: "/sale/chinaAjax",
+            type: "get",
+            data: {"saleTime": time, "condition": con},
+            dataType: "json",
+            success: function (data) {
+                // 基于准备好的dom，初始化echarts实例
+                var myChart = echarts.init(document.getElementById('main'));
+                console.log(data)
+                var storeCitys = [], moveLines = [], saleCitys = [];
+                for (let i = 0; i < data.length; i++) {
+                    var storeLog = data[i].storeAddress.log;
+                    var storeLat = data[i].storeAddress.lat;
+                    var saleLog = data[i].saleAddress.log;
+                    var saleLat = data[i].saleAddress.lat;
+
+                    storeCitys[i] = {
+                        "name": data[i].record.storeArea,
+                        "value": [storeLog, storeLat, data[i].record.saleCount*10],
+                        "symbolSize": 3,
+                        "itemStyle": {
+                            "normal": {
+                                "color": "#F58158"
+                            }
+                        }
+                    };
+                    saleCitys[i] = {
+                        "name": data[i].record.saleArea,
+                        "value": [saleLog, saleLat, 0],
+                        "symbolSize": 2,
+                        "itemStyle": {
+                            "normal": {
+                                "color": "#58B3CC"
+                            }
+                        }
+                    };
+                    moveLines[i] = {
+                        "fromName": data[i].storeAddress.name,
+                        "toName": data[i].saleAddress.name,
+                        "coords": [
+                            [storeLog, storeLat],
+                            [saleLog, saleLat]
+                        ]
+                    }
+                }
+
+                var option = {
+                    backgroundColor: '#404a59',
+                    title: {
+                        text: '商品销售流动图',
+                        left: 'left',
+                        textStyle: {
+                            color: '#fff'
+                        }
+                    },
+                    legend: {
+                        show: false,
+                        orient: 'vertical',
+                        top: 'bottom',
+                        left: 'right',
+                        data: ['地点', '线路'],
+                        textStyle: {
+                            color: '#fff'
+                        }
+                    },
+                    geo: {
+                        map: 'china',
+                        label: {
+                            emphasis: {
+                                show: false
+                            }
+                        },
+                        roam: true,
+                        itemStyle: {
+                            normal: {
+                                areaColor: '#323c48',
+                                borderColor: '#404a59'
+                            },
+                            emphasis: {
+                                areaColor: '#2a333d'
+                            }
+                        }
+                    },
+                    series: [{
+                        name: '地点',
+                        type: 'effectScatter',
+                        coordinateSystem: 'geo',
+                        zlevel: 2,
+                        rippleEffect: {
+                            brushType: 'stroke'
+                        },
+                        label: {
+                            emphasis: {
+                                show: true,
+                                position: 'right',
+                                formatter: '{b}'
+                            }
+                        },
+                        symbolSize: 2,
+                        showEffectOn: 'render',
+                        itemStyle: {
+                            normal: {
+                                color: '#46bee9'
+                            }
+                        },
+                        data: storeCitys.concat(saleCitys)
+                    }, {
+                        name: '线路',
+                        type: 'lines',
+                        coordinateSystem: 'geo',
+                        zlevel: 2,
+                        large: true,
+                        effect: {
+                            show: true,
+                            constantSpeed: 30,
+                            symbol: 'pin',
+                            symbolSize: 3,
+                            trailLength: 0,
+                        },
+                        lineStyle: {
+                            normal: {
+                                color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [{
+                                    offset: 0,
+                                    color: '#58B3CC'
+                                }, {
+                                    offset: 1,
+                                    color: '#F58158'
+                                }], false),
+                                width: 1,
+                                opacity: 0.2,
+                                curveness: 0.1
+                            }
+                        },
+                        data: moveLines
+                    }]
+                };
+
+                myChart.setOption(option);
+            }
+        })
+
+    }
+
+</script>

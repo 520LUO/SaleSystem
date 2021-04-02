@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="stylesheet" href="/css/font.css">
+    <link rel="stylesheet" href="/css/xadmin.css">
+    <script type="text/javascript" src="https://cdn.bootcss.com/jquery/3.2.1/jquery.min.js"></script>
+    <script src="/lib/layui/layui.js" charset="utf-8"></script>
+    <script type="text/javascript" src="/js/xadmin.js"></script>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body class="list-bg">
+
+<form class="x-so" action="/supply/list" method="get" id="myform">
+    </br></br></br>
+    <select id="condition" name="condition" style="width: 120px;height: 37px">
+        <option value="编号">编号</option>
+        <option value="代理人">代理人</option>
+        <option value="性别">性别</option>
+        <option value="联系电话">联系电话</option>
+        <option value="证件名称">证件名称</option>
+        <option value="签发时间">签发时间</option>
+
+    </select>
+    <input id="convalue1" name="convalue1" type="hidden" th:value="${convalue}">
+    <input id="condition1" name="condition1" type="hidden" th:value="${condition}">
+
+    <input class="layui-input" id="convalue" name="convalue" type="text" placeholder="请输入查询条件">
+    <button type="button" class="layui-btn layui-btn-normal" onclick="search()">查询</button>
+    <button class="layui-btn layui-btn-warm" type="button" onclick="insert()">添加</button>
+    <a class="layui-btn layui-btn-warm" type="button" onclick="downloadFile()">导出Excel</a>
+</form>
+
+<table class="layui-table">
+    <thead>
+    <th>编号</th>
+    <th>供货商代理人</th>
+    <th>性别</th>
+    <th>联系电话</th>
+    <th>邮箱地址</th>
+    <th>证件名称</th>
+    <th>证件照</th>
+    <th>证件号码</th>
+    <th>签发时间</th>
+    <th>有效期限</th>
+    <th>操作</th>
+    <th>操作</th>
+
+    </thead>
+    <tbody>
+    <tr th:each="i:${info.list}">
+        <td th:text="${i.supId}"></td>
+        <td th:text="${i.supAgent}"></td>
+        <td th:text="${i.sex}"></td>
+        <td th:text="${i.supTel}"></td>
+        <td th:text="${i.supEmail}"></td>
+        <td th:text="${i.certName}"></td>
+        <td><a type="button" onclick="look(this)"><img th:src="${i.certUrl}" width="60px" height="40px"></a></td>
+        <td th:text="${i.certNum}"></td>
+        <td th:text="${i.startTime}"></td>
+        <td th:text="${i.validTime}"></td>
+
+        <td>
+            <button class="layui-btn" type="button" onclick="update(this)">修改</button>
+        </td>
+        <td>
+            <button class="layui-btn layui-btn-danger" type="button" onclick="del(this)">删除</button>
+        </td>
+    </tr>
+    </tbody>
+
+</table>
+<div id="pageInfo">
+    <a class="layui-btn layui-btn-normal" th:href="@{/supply/list(page=${info.pre})}">上一页</a>
+    <a class="layui-btn layui-btn-normal" th:href="@{/supply/list(page=${info.next})}">下一页</a>
+    一共有<span th:text="${info.total}"></span>条数据
+    一共有<span th:text="${info.totalPage}"></span>个页面
+    当前第<span th:text="${info.cur}"></span>页
+
+</div>
+</body>
+</html>
+<script>
+    //文档加载事件
+    $(function () { //改编查询框的值
+        var convalue = $("#convalue1").val();
+        var condition = $("#condition1").val();
+        $("#condition option[value='" + condition + "']").attr("selected", 'true');
+        $("#convalue").val(convalue);
+    })
+
+    //导出excel
+    function downloadFile() {
+
+        window.location.href = "/supply/supplyExcel";
+    }
+
+    //查询验证
+    function search() {
+        //获取用户输入的查询条件
+        var v = $("#convalue").val();
+        //获取用户选择的查询
+        var con = $("#condition").val();
+        console.log(v);
+        var form = document.getElementById("myform");
+        //判断用户选择的查询条件
+        if (con === "编号") {
+            //创建一个正则表达式对象
+            var re = /^[0-9]*$/;
+            //验证用户的查询条件是否是数字
+            if (re.test(v)) {
+                //用JS做表单提交
+                form.submit();
+            } else {
+                layer.alert("请输入数字");
+            }
+        } else if (con === "性别") {
+            if (v === "男" || v === "女") {
+                form.submit();
+            } else {
+                layer.alert("请输入正确的性别");
+            }
+        } else if (con === "联系电话") {
+            const reg = /^1(?:3\d|4[4-9]|5[0-35-9]|6[67]|7[013-8]|8\d|9\d)\d{8}$/;
+            if (reg.test(v)) {
+                form.submit();
+            } else {
+                layer.alert("请输入正确的手机号码");
+            }
+        } else if (con === "邮箱地址") {
+            const reg = /^\w+([-+.]\w+)*@\w+([-.]\w+)*\.\w+([-.]\w+)*$/;
+            if (reg.test(v)) {
+                form.submit();
+            } else {
+                layer.alert("请输入正确的邮箱");
+            }
+        } else if (con === "签发时间") {
+            const reg = /^\d{4}-\d{1,2}-\d{1,2}/;
+            if (reg.test(v)) {
+                form.submit();
+            } else {
+                layer.alert("请输入正确的时间格式 yyyy-MM-dd");
+            }
+        } else {
+            form.submit();
+        }
+    }
+    //查看图片
+    function look(obj){
+        //获取选中行userId的值
+        var id = $(obj).parent().parent().find("td").eq(0).text();
+        x_admin_show("证件照", "/supply/lookPhoto?supId="+ id, 570, 400)
+    }
+
+    //添加用户
+    function insert() {
+        x_admin_show("添加用户", "/supply/insertPage", 900, 600)
+    }
+
+    //打开修改页面的方法
+    function update(obj) {
+        //获取选中行userId的值
+        var id = $(obj).parent().parent().find("td").eq(0).text();
+        //打开修改弹窗
+        x_admin_show("修改", "/supply/updatePage?supId=" + id, 900, 600);
+
+    }
+
+    //删除
+    function del(obj) {
+        var id = $(obj).parent().parent().find("td").eq(0).text();
+        layer.confirm("你确定要删除吗？", {icon: 3, title: "警告"}, function (index) {//function()中为用户点击按钮后进行的操作
+            $.ajax({
+                url: "/supply/deleteAjax",
+                type: "get",
+                data: {"supId": id},
+                dataTypeL: "json",
+                success: function (data) {
+                    layer.alert(data.info);
+                    if (data.info == "删除成功") {
+                        $(obj).parent().parent().remove();
+                    }
+                }
+            })
+        })
+    }
+</script>

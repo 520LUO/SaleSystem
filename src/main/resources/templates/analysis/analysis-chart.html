@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <script src="/js/jquery-3.2.1.min.js"></script>
+    <script src="/js/echarts.min.js"></script>
+    <script src="/lib/layui/layui.js" charset="utf-8"></script>
+    <style>
+        html, body {
+            height: 100%;
+        }
+    </style>
+</head>
+<body background="#C0C0C0">
+<form>
+    <div style="position: absolute;left: 37%">
+        <select id="type" style="width: 120px;height: 25px" onblur="changeVal()" class="layui-input">
+            <option value="入库">入库</option>
+            <option value="出库">出库</option>
+        </select>
+        <select id="condition" style="width: 120px;height: 25px" onmouseout="changeVal()" class="layui-input">
+            <option value="月统计">月统计</option>
+            <option value="年统计">年统计</option>
+        </select>
+        <input id="convalue" name="convalue" type="text" autocomplete="off" class="layui-input"
+               style="width: 135px;height: 25px" lay-filter="convalue">
+        <input id="convalue1" name="convalue" hidden type="text" autocomplete="off" class="layui-input"
+               style="width: 135px;height: 25px" lay-filter="convalue">
+
+        <button type="button" onclick="monthChart()" class="layui-btn layui-btn-mybtn">查询</button>
+    </div>
+</form>
+<!--创建一个容器-->
+<div id="main" style="position: absolute;top:5%;width: 50%;height: 95% ;left: 0px" ;></div>
+<div id="main1" style="position: absolute;top:5%;width: 50%;height: 95% ;right: 0px" ;></div>
+</body>
+</html>
+<script>
+
+    //定义jquery文档加载事件
+    $(function () {
+        layui.use('laydate', function () {
+            var laydate = layui.laydate;
+
+            //执行一个laydate实例
+            laydate.render({
+                elem: '#convalue',//指定元素
+                type: "month"
+            });
+            laydate.render({
+                elem: '#convalue1',//指定元素
+                type: "year"
+            });
+        });
+        var date = new Date();
+        var year = date.getFullYear() + "-";
+        var month = date.getMonth() + 1;
+        if (month < 10) {
+            month = "0" + month;
+        }
+        var yearMonth = year + month;
+        console.log(yearMonth)
+        $("#convalue").val(yearMonth);
+        $("#convalue1").val(date.getFullYear());
+        monthChart();
+    })
+
+    //更改时间输入框的类型
+    function changeVal() {
+        var con = $("#condition").val();
+        var type;
+        type = (con === "年统计") ? "year" : "month";
+        console.log(type);
+        if (type === "year") {
+            $("#convalue").hide();
+            $("#convalue1").show();
+        } else {
+            $("#convalue").show();
+            $("#convalue1").hide();
+        }
+    }
+
+
+    //生成chart函数
+    function monthChart() {
+        //获取选中的查询条件
+        var condition = $("#condition").val();
+        if (condition==="年统计"){
+            //获取选中的查询时间
+            var convalue = $("#convalue1").val();
+        }else{
+            var convalue = $("#convalue").val();
+        }
+        var type = $("#type").val();
+        $.ajax({
+            url: "/analyse/lineChartAjax",
+            type: "get",
+            data: {"convalue": convalue, "condition": condition, "type": type},
+            dataType: "json",
+            success: function (data) {
+                var myChart = echarts.init(document.getElementById('main'));
+                var myChart1 = echarts.init(document.getElementById('main1'));
+                console.log(data)
+                // 指定图表的配置项和数据
+                const xData = [], countData = [], moneyData = [];//折线图的数据
+                const Data1 = [], Name = [];
+                for (let i = 0; i < data.info.length; i++) {
+                    xData[i] = data.info[i].time;
+                    countData[i] = data.info[i].count;
+                    moneyData[i] = data.info[i].money;
+                }
+                for (let i = 0; i < data.listI.length; i++) {
+                    Name[i] = data.listI[i].name;
+                    Data1[i] = data.listI[i].count;
+                }
+
+                const sideData = Data1.map(item => item + 4.5)//柱状图顶部位置
+
+                var option = {
+                    backgroundColor: "#1A1835",
+                    title: {
+                        text: '',
+                        left: 'left',
+                        textStyle: {
+                            color: '#fff'
+                        }
+                    },
+                    tooltip: {
+                        trigger: "axis",
+                        axisPointer: {
+                            type: "shadow",
+                            textStyle: {
+                                color: "#fff"
+                            }
+
+                        },
+                    },
+                    grid: {
+                        borderWidth: 0,
+                        top: 110,
+                        bottom: 95,
+                        textStyle: {
+                            color: "#fff"
+                        }
+                    },
+                    legend: {
+                        x: '46%',
+                        top: '11%',
+                        textStyle: {
+                            color: '#90979c',
+                        },
+                        data: ['数量', '金额']
+                    },
+
+
+                    calculable: true,
+                    xAxis: [{
+                        type: "category",
+                        axisLine: {
+                            lineStyle: {
+                                color: "rgba(204,187,225,0.5)",
+                            }
+                        },
+                        splitLine: {
+                            show: false
+                        },
+                        axisTick: {
+                            show: false
+                        },
+                        data: xData,
+                    }],
+
+                    yAxis: [{
+                        type: "value",
+                        splitLine: {
+                            show: false
+                        },
+                        axisLine: {
+                            lineStyle: {
+                                color: "rgba(204,187,225,0.5)",
+                            }
+                        },
+
+                    }],
+                    dataZoom: [{
+                        show: true,
+                        height: 30,
+                        xAxisIndex: [0],
+                        bottom: 30,
+
+                        "start": 10,
+                        "end": 80,
+                        handleIcon: 'path://M306.1,413c0,2.2-1.8,4-4,4h-59.8c-2.2,0-4-1.8-4-4V200.8c0-2.2,1.8-4,4-4h59.8c2.2,0,4,1.8,4,4V413z',
+                        handleSize: '110%',
+                        handleStyle: {
+                            color: "#5B3AAE",
+                        },
+                        textStyle: {
+                            color: "rgba(204,187,225,0.5)",
+                        },
+                        fillerColor: "rgba(67,55,160,0.4)",
+                        borderColor: "rgba(204,187,225,0.5)",
+
+                    }, {
+                        type: "inside",
+                        show: true,
+                        height: 15,
+                        start: 1,
+                        end: 35
+                    }],
+                    series: [{
+                        name: "数量",
+                        type: "line",
+                        symbolSize: 10,
+                        symbol: 'circle',
+                        itemStyle: {
+                            color: "#6f7de3",
+                        },
+                        markPoint: {
+                            label: {
+                                normal: {
+                                    textStyle: {
+                                        color: '#fff'
+                                    }
+                                }
+                            },
+                            data: [{
+                                type: 'max',
+                                name: '最大值',
+
+                            }, {
+                                type: 'min',
+                                name: '最小值'
+                            }]
+                        },
+                        data: countData,
+                    }, {
+                        name: "金额",
+                        type: "line",
+                        symbolSize: 10,
+                        symbol: 'circle',
+                        itemStyle: {
+                            color: "#c257F6",
+                        },
+                        markPoint: {
+                            label: {
+                                normal: {
+                                    textStyle: {
+                                        color: '#fff'
+                                    }
+                                }
+                            },
+                            data: [{
+                                type: 'max',
+                                name: '最大值',
+
+                            }, {
+                                type: 'min',
+                                name: '最小值'
+                            }]
+                        },
+                        data: moneyData
+                    },]
+                }
+                //柱状图
+                var option1 = {
+                    title: {
+                        text: '',
+                        left: 'left',
+                        textStyle: {
+                            color: '#fff'
+                        }
+                    },
+                    backgroundColor: "#1A1835",
+                    tooltip: {
+                        trigger: 'axis',
+                        formatter: "{b} : {c}",
+                        axisPointer: { // 坐标轴指示器，坐标轴触发有效
+                            type: 'shadow' // 默认为直线，可选为：'line' | 'shadow'
+                        }
+                    },
+                    xAxis: {
+                        data: Name,
+                        //坐标轴
+                        axisLine: {
+                            lineStyle: {
+                                color: '#3eb2e8'
+                            }
+                        },
+                        //坐标值标注
+                        axisLabel: {
+                            show: true,
+                            textStyle: {
+                                color: '#fff',
+                            }
+                        }
+                    },
+                    yAxis: {
+                        //坐标轴
+                        axisLine: {
+                            show: false
+                        },
+                        //坐标值标注
+                        axisLabel: {
+                            show: true,
+                            textStyle: {
+                                color: '#fff',
+                            }
+                        },
+                        //分格线
+                        splitLine: {
+                            lineStyle: {
+                                color: '#4784e8'
+                            }
+                        }
+                    },
+                    series: [{
+                        name: 'a',
+                        tooltip: {
+                            show: false
+                        },
+                        type: 'bar',
+                        barWidth: 24.5,
+                        itemStyle: {
+                            normal: {
+                                color: new echarts.graphic.LinearGradient(0, 1, 0, 0, [{
+                                    offset: 0,
+                                    color: "#0B4EC3" // 0% 处的颜色
+                                }, {
+                                    offset: 0.6,
+                                    color: "#138CEB" // 60% 处的颜色
+                                }, {
+                                    offset: 1,
+                                    color: "#17AAFE" // 100% 处的颜色
+                                }], false)
+                            }
+                        },
+                        data: Data1,
+                        barGap: 0
+                    }, {
+                        type: 'bar',
+                        barWidth: 8,
+                        itemStyle: {
+                            normal: {
+                                color: new echarts.graphic.LinearGradient(0, 1, 0, 0, [{
+                                    offset: 0,
+                                    color: "#09337C" // 0% 处的颜色
+                                }, {
+                                    offset: 0.6,
+                                    color: "#0761C0" // 60% 处的颜色
+                                }, {
+                                    offset: 1,
+                                    color: "#0575DE" // 100% 处的颜色
+                                }], false)
+                            }
+                        },
+                        barGap: 0,
+                        data: Data1
+                    }, {
+                        name: 'b',
+                        tooltip: {
+                            show: false
+                        },
+                        type: 'pictorialBar',
+                        itemStyle: {
+                            borderWidth: 1,
+                            borderColor: '#0571D5',
+                            color: '#1779E0'
+                        },
+                        symbol: 'path://M 0,0 l 120,0 l -30,60 l -120,0 z',
+                        symbolSize: ['30', '12'],
+                        symbolOffset: ['0', '-11'],
+                        //symbolRotate: -5,
+                        symbolPosition: 'end',
+                        data: Data1,
+                        z: 3
+                    }]
+                };
+                if (condition === "月统计") {
+                    option.title.text = type + "商品" + convalue + "月的数量和金额曲线图";
+                    option1.title.text = type + "商品" + convalue + "月的数量柱状图";
+                } else {
+                    option.title.text = type + "商品" + convalue + "年的数量和金额曲线图";
+                    option1.title.text = type + "商品" + convalue + "年的数量柱状图";
+                }
+
+                // 使用刚指定的配置项和数据显示图表。
+                myChart.setOption(option);
+                myChart1.setOption(option1);
+            }
+        })
+
+    }
+
+
+</script>
